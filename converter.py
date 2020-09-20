@@ -9,6 +9,9 @@ def writeln(file, ln: str):
     return file.write(ln + '\n')
 
 def createm3uEntry(file, tvg_id, tvg_logo, group_title, tvg_name, m3u8_link, extra_flags, user_agent):
+    if (not m3u8_link):
+        print("Station without url link parsed. Skipping...")
+        return
     # if not tvg_id: tvg_id = tvg_name # Set default value for tvg_id. Maybe we actually don't want this though?....
     string_format = f'#EXTINF: -1 tvg-id="{tvg_id}" tvg-logo="{tvg_logo}" group-title="{group_title}" tvg-name="{tvg_name}",{tvg_name}'
     writeln(file, string_format)
@@ -28,7 +31,7 @@ if (len(w3u_filenames)):
     print("w3u files detected. Starting conversion...")
     for w3u_filename in w3u_filenames:
         print(f'Transforming {w3u_filename} ...')
-        with open(w3u_filename, "r") as w3u_file:
+        with open(w3u_filename, "r", encoding='utf-8') as w3u_file:
             if utf8: 
                 m3u_filename = w3u_filename.replace("w3u", "m3u8")
             else:
@@ -39,17 +42,29 @@ if (len(w3u_filenames)):
                 # Initialize m3u file
                 writeln(m3u_file, "#EXTM3U")
                 for group in w3u["groups"]:
-                    group_title = group["name"]
-                    for station in group["stations"]:
+                    if (group.get("stations")):
+                        group_title = group["name"]
+                        for station in group["stations"]:
+                            createm3uEntry(
+                                m3u_file,
+                                station.get("epgId"),
+                                station.get("image"),
+                                group_title,
+                                station.get("name"),
+                                station.get("url"),
+                                extra_flags,
+                                station.get("userAgent")
+                            )
+                    else:
                         createm3uEntry(
                             m3u_file,
-                            station.get("epgId"),
-                            station.get("image"),
-                            group_title,
-                            station.get("name"),
-                            station.get("url"),
+                            group.get("epgId"),
+                            group.get("image"),
+                            group.get("title"),
+                            group.get("name"),
+                            group.get("url"),
                             extra_flags,
-                            station.get("userAgent")
+                            group.get("userAgent")
                         )
         print("Done!")
     print("No more files. Exiting...")
