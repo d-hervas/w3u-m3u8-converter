@@ -20,25 +20,18 @@ def createm3uEntry(file, tvg_id, tvg_logo, group_title, tvg_name, m3u8_link, ext
         writeln(file, f'#EXTVLCOPT:http-user-agent={user_agent}')
 
 print("w3u to m3u converter")
-utf8 = True
-extra_flags = True
-if "--no-utf8" in sys.argv:
-    utf8 = False 
-if "--no-extra-flags" in sys.argv:
-    extra_flags = False
+extra_flags = False
+if "--extra-flags" in sys.argv:
+    extra_flags = True
 w3u_filenames = glob.glob("*.w3u")
 if (len(w3u_filenames)):
     print("w3u files detected. Starting conversion...")
     for w3u_filename in w3u_filenames:
         print(f'Transforming {w3u_filename} ...')
         with open(w3u_filename, "r", encoding='utf-8') as w3u_file:
-            if utf8: 
-                m3u_filename = w3u_filename.replace("w3u", "m3u8")
-            else:
-                m3u_filename = w3u_filename.replace("w3u", "m3u")
+            m3u_filename = w3u_filename.replace("w3u", "m3u8")
             w3u = json.load(w3u_file)
             with open(m3u_filename, "w", encoding='utf-8') as m3u_file:
-                # if utf8: m3u_file.encoding='utf-8'
                 # Initialize m3u file
                 writeln(m3u_file, "#EXTM3U")
                 for group in w3u["groups"]:
